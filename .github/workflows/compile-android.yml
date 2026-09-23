@@ -1,4 +1,4 @@
-name: Android NDK Compiler
+name: Android NDK Compiler (Manual Setup)
 on: [push]
 jobs:
   build:
@@ -7,16 +7,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Android NDK
-        uses: android-actions/setup-android@v3
-        with:
-          ndk-version: '25.1.8937393'
+      - name: Install NDK Manually
+        run: |
+          mkdir -p $HOME/android-ndk
+          wget -O ndk.zip https://dl-cdn.google.com/android_sdk/ndk/25.1.8937393-linux-x86_64.zip
+          unzip ndk.zip -d $HOME/android-ndk
+          echo "NDK_HOME=$HOME/android-ndk" >> $GITHUB_ENV
 
       - name: Compile C++ to Shared Library
         run: |
-          # Compiling the .cpp file into a .so shared object
-          $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-clang++ \
-          -shared -fPIC -o libinterpolation.so your_code.cpp \
+          $HOME/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-clang++ \
+          -shared -fPIC -o libinterpolation.so frame.cpp \
           -static-stdlib
 
       - name: Upload binary as artifact
