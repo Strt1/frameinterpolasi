@@ -1,4 +1,4 @@
-name: Android NDK Compiler (Manual Setup)
+name: Android NDK Compiler (Fixed Path)
 on: [push]
 jobs:
   build:
@@ -7,20 +7,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install NDK Manually
+      - name: Install NDK
         run: |
           mkdir -p $HOME/android-ndk
           wget -O ndk.zip https://dl-cdn.google.com/android_sdk/ndk/25.1.8937393-linux-x86_64.zip
           unzip ndk.zip -d $HOME/android-ndk
-          echo "NDK_HOME=$HOME/android-ndk" >> $GITHUB_ENV
+          # Fix folder nesting that often happens with NDK zips
+          mv $HOME/android-ndk/android-ndk-r25c $HOME/android-ndk/ndk || true
 
-      - name: Compile C++ to Shared Library
+      - name: Compile
         run: |
-          $HOME/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-clang++ \
-          -shared -fPIC -o libinterpolation.so frame.cpp \
-          -static-stdlib
+          # Find the actual clang++ binary path
+          CLANG_PATH=$(find $HOME/android-ndk -name aarch64-linux-android-clang++ | head -n 1)
+          echo "Using compiler: $CLANG_PATH"
+          $CLANG_PATH -shared -fPIC -o libinterpolation.so frame.cpp -static-stdlib
 
-      - name: Upload binary as artifact
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: android-binary
