@@ -1,0 +1,26 @@
+name: Android NDK Compiler
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Android NDK
+        uses: android-actions/setup-android@v3
+        with:
+          ndk-version: '25.1.8937393'
+
+      - name: Compile C++ to Shared Library
+        run: |
+          # Compiling the .cpp file into a .so shared object
+          $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-clang++ \
+          -shared -fPIC -o libinterpolation.so your_code.cpp \
+          -static-stdlib
+
+      - name: Upload binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-binary
+          path: libinterpolation.so
